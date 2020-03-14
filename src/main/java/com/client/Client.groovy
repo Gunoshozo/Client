@@ -33,16 +33,11 @@ class Client extends Thread{
         this.serverSocket = new Socket(ip,PORT)
     }
 
-    Client(uiForm,String ip) {
-        this.uiForm = uiForm
-        this.serverSocket = new Socket(ip, PORT)
-    }
-
     void setUiForm(UIForm uiForm) {
         this.uiForm = uiForm
     }
 
-    void start(){
+    void run(){
         serverSocket.withStreams { input, output ->
             while (true) {
                 def response = input.newReader().readLine()
@@ -85,7 +80,6 @@ class Client extends Thread{
     def void handleTurn(response) {
         EvenTurn = response['Turn']
         uiForm.UpdateNumber(response['MagicNumber'])
-        if(EvenUser == EvenTurn)
-            uiForm.EnableButtons(true)
+        uiForm.EnableButtons(true)
     }
 }

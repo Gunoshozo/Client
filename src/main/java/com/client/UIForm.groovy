@@ -29,7 +29,7 @@ class UIForm extends JFrame {
         this.client = client;
     }
 
-    UIForm getThis(){
+    UIForm getInstance(){
         return this;
     }
 
@@ -49,7 +49,8 @@ class UIForm extends JFrame {
                 Pattern pattern = Pattern.compile(patternString);
                 Matcher matcher = pattern.matcher(ip);
                 if (matcher.matches()) {
-                    client = new Client(getThis(), textField1.getText());
+                    client = new Client(textField1.getText());
+                    client.setUiForm(getInstance())
                     client.start();
                     button2.setVisible(false);
                     textField1.setVisible(false);
@@ -88,7 +89,7 @@ class UIForm extends JFrame {
         radioButton3.setText(ops[2]);
         radioButton4.setText(ops[3]);
         radioButton5.setText(ops[4]);
-        UpdateNumber(magic);
+        MagicLabel.setText("Magic Number:"+ magic.toString())
     }
 
     void UpdateNumber(Integer Magic){
