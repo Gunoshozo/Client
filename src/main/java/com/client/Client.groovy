@@ -3,7 +3,7 @@ package com.client
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
-class Client {
+class Client extends Thread{
 
 
     private final def PORT = 6666
@@ -16,6 +16,18 @@ class Client {
 
 
     Socket serverSocket
+
+    Boolean getEvenUser() {
+        return EvenUser
+    }
+
+    Socket getServerSocket() {
+        return serverSocket
+    }
+
+    void setServerSocket(Socket serverSocket) {
+        this.serverSocket = serverSocket
+    }
 
     Client(String ip) {
         this.serverSocket = new Socket(ip,PORT)
@@ -30,10 +42,10 @@ class Client {
         this.uiForm = uiForm
     }
 
-    def start(){
-        while (true) {
-            serverSocket.withStreams { input, output ->
-                def response = input.newObjectInputStream().readObject()
+    void start(){
+        serverSocket.withStreams { input, output ->
+            while (true) {
+                def response = input.newReader().readLine()
                 handleResponse(response)
             }
         }
@@ -46,7 +58,9 @@ class Client {
             case 'Init':
                 handleInit(responseMap)
                 break
-            default:
+            //Если выпала очередь данного клиента
+            case 'NewTurn':
+                handleTurn(responseMap)
                 break
         }
     }
@@ -54,26 +68,24 @@ class Client {
     def void handleInit(response) {
         EvenUser = response['even']
         Ops = normalizeOutput(response['ops'])
-        currentMagic = response['MagicNumber']
+        currentMagic = response['val']
         EvenTurn = false
         uiForm.InitVals(Ops,currentMagic)
-        checkTurn()
-
     }
 
-    def normalizeOutput(def TupleList){
+    def normalizeOutput(def InputList){
         def list = new ArrayList<String>()
-        TupleList.each { it->
+        InputList.each { it->
             def s = it[0] + "${it[1].toString()[0] == '-' ?'('+it[1]+')':it[1]}"
             list.add(s)
         }
         return list
     }
 
-    def checkTurn(){
+    def void handleTurn(response) {
+        EvenTurn = response['Turn']
+        uiForm.UpdateNumber(response['MagicNumber'])
         if(EvenUser == EvenTurn)
-            uiForm.EnableButtons()
+            uiForm.EnableButtons(true)
     }
-
-
 }
