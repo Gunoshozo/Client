@@ -13,7 +13,10 @@ class Client extends Thread{
     private Integer currentMagic
     private Boolean EvenTurn
     private UIForm uiForm
+    private ShouldRun = true
 
+    private def outputStream
+    private def inputStream
 
     Socket serverSocket
 
@@ -39,7 +42,9 @@ class Client extends Thread{
 
     void run(){
         serverSocket.withStreams { input, output ->
-            while (true) {
+            inputStream = input
+            outputStream = output
+            while (ShouldRun) {
                 def response = input.newReader().readLine()
                 handleResponse(response)
             }
@@ -53,9 +58,11 @@ class Client extends Thread{
             case 'Init':
                 handleInit(responseMap)
                 break
-            //Если выпала очередь данного клиента
             case 'NewTurn':
                 handleTurn(responseMap)
+                break
+            case 'End':
+                endGame(responseMap)
                 break
         }
     }
@@ -66,6 +73,7 @@ class Client extends Thread{
         currentMagic = response['val']
         EvenTurn = false
         uiForm.InitVals(Ops,currentMagic)
+        handleTurn(response)
     }
 
     def normalizeOutput(def InputList){
@@ -77,9 +85,23 @@ class Client extends Thread{
         return list
     }
 
-    def void handleTurn(response) {
-        EvenTurn = response['Turn']
-        uiForm.UpdateNumber(response['MagicNumber'])
-        uiForm.EnableButtons(true)
+    def handleTurn(response) {
+        EvenTurn = response['turn']
+        uiForm.UpdateNumber(response['val'])
+        if (EvenTurn == EvenUser)
+            uiForm.EnableButtons(true)
+    }
+
+    def sentOper(opNumber) {
+        def data = [type:"move",
+                    oper:opNumber]
+        def json = JsonOutput.toJson(data)+'\n'
+        outputStream << json
+    }
+
+    def endGame(response){
+        uiForm.UpdateNumber(response['val'])
+        uiForm.EndGame(response['turn'] == EvenUser)
+        ShouldRun = false
     }
 }

@@ -2,7 +2,8 @@ package com.client;
 
 import groovy.json.JsonOutput;
 
-import javax.swing.*;
+import javax.swing.*
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.regex.Matcher;
@@ -22,6 +23,7 @@ class UIForm extends JFrame {
     private JTextField textField1 ;
     private JLabel MagicLabel;
     private JLabel TurnLabel;
+    private JPanel JPanel1;
 
     Client client;
 
@@ -64,13 +66,9 @@ class UIForm extends JFrame {
         makeAMoveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                client.getServerSocket().withStreams {input,output->
-                    def data = [type:"Move",
-                                oper:getOpNumber()]
-                    def json = JsonOutput.toJson(data)
-                    output.newObjectOutputStream().writeObject(json)
+                    client.sentOper(getOpNumber())
                     EnableButtons(false)
-                }
+
             }
         });
     }
@@ -78,7 +76,7 @@ class UIForm extends JFrame {
     Integer getOpNumber(){
         def radioGroup = [radioButton1,radioButton2,radioButton3,radioButton4,radioButton5]
         for (int i = 0; i < radioGroup.size(); i++) {
-            if(radioGroup[i])
+            if(radioGroup[i].isSelected())
                 return i;
         }
     }
@@ -101,12 +99,30 @@ class UIForm extends JFrame {
     }
 
     void EnableButtons( boolean val) {
-        radioButton1.setEnabled(true)
-        radioButton2.setEnabled(true)
-        radioButton3.setEnabled(true)
-        radioButton4.setEnabled(true)
-        radioButton5.setEnabled(true)
-        makeAMoveButton.setEnabled(true)
+        radioButton1.setEnabled(val)
+        radioButton2.setEnabled(val)
+        radioButton3.setEnabled(val)
+        radioButton4.setEnabled(val)
+        radioButton5.setEnabled(val)
+        makeAMoveButton.setEnabled(val)
+    }
+
+    void HideButtons(boolean val){
+        radioButton1.setVisible(!val)
+        radioButton2.setVisible(!val)
+        radioButton3.setVisible(!val)
+        radioButton4.setVisible(!val)
+        radioButton5.setVisible(!val)
+        makeAMoveButton.setVisible(!val)
+    }
+
+    void EndGame(boolean win){
+        EnableButtons(false)
+        HideButtons(true)
+        if(win)
+            JPanel1.setBackground(Color.GREEN)
+        else
+            JPanel1.setBackground(Color.RED)
     }
 
 }
